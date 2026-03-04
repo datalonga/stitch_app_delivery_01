@@ -170,8 +170,10 @@ let modalSizeIdx = 0;
 let modalQty = 1;
 let modalSecondFlavor = false;
 let modalFlavor2 = null;
-let modalBordas = [];
+let modalBorda = null;
 let modalAdicionais = [];
+let modalShowBordas = false;
+let modalShowAdicionais = false;
 
 // ===== UTILS =====
 function formatPrice(val) {
@@ -286,26 +288,7 @@ function handleSearch(e) {
 
 // ===== ADD QUICK (non-pizza) =====
 function addQuick(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
-    if (product.isPizza) {
-        openProduct(productId);
-        return;
-    }
-    const existing = cart.find(item => item.productId === productId && !item.customization);
-    if (existing) {
-        existing.qty++;
-    } else {
-        cart.push({
-            productId,
-            name: product.name,
-            desc: product.desc,
-            price: product.price,
-            qty: 1,
-            customization: null
-        });
-    }
-    updateCartBar();
-    showToast(`${product.name} adicionado à sacola!`);
+    openProduct(productId);
 }
 
 // ===== PRODUCT MODAL =====
@@ -316,8 +299,10 @@ function openProduct(productId) {
     modalQty = 1;
     modalSecondFlavor = false;
     modalFlavor2 = null;
-    modalBordas = [];
+    modalBorda = null;
     modalAdicionais = [];
+    modalShowBordas = false;
+    modalShowAdicionais = false;
 
     if (product.isPizza) {
         renderPizzaModal();
@@ -408,42 +393,70 @@ function renderPizzaModal() {
                 </div>
             </div>
 
-            <!-- Bordas -->
-            <div class="modal-section">
-                <div class="modal-section-title">
-                    <span class="material-symbols-outlined">circle</span>
-                    Bordas Recheadas
+            <!-- Toggle Bordas -->
+            <div class="toggle-row">
+                <div class="toggle-row-text">
+                    <p>Borda recheada?</p>
+                    <p>Escolha uma borda especial</p>
                 </div>
-                ${BORDAS.map((b, i) => `
-                    <div class="extra-option ${modalBordas.includes(i) ? "selected" : ""}" onclick="toggleBorda(${i})">
-                        <span class="extra-name">${b.name}</span>
-                        <div class="extra-right">
-                            <span class="extra-price">+ ${formatPrice(b.price)}</span>
-                            <div class="checkbox-custom">
-                                <span class="material-symbols-outlined">check</span>
-                            </div>
-                        </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${modalShowBordas ? "checked" : ""} onchange="toggleShowBordas(this.checked)"/>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Bordas -->
+            <div id="bordas-section" style="display:${modalShowBordas ? "block" : "none"}">
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span class="material-symbols-outlined">circle</span>
+                        Bordas Recheadas
                     </div>
-                `).join("")}
+                    ${BORDAS.map((b, i) => `
+                        <div class="flavor-option ${modalBorda === i ? "selected" : ""}" onclick="selectBorda(${i})">
+                            <div class="flavor-left">
+                                <div>
+                                    <div class="flavor-name">${b.name}</div>
+                                    <div class="flavor-desc">+ ${formatPrice(b.price)}</div>
+                                </div>
+                            </div>
+                            <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+
+            <!-- Toggle Adicionais -->
+            <div class="toggle-row">
+                <div class="toggle-row-text">
+                    <p>Adicionais?</p>
+                    <p>Turbine sua pizza com extras</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${modalShowAdicionais ? "checked" : ""} onchange="toggleShowAdicionais(this.checked)"/>
+                    <span class="toggle-slider"></span>
+                </label>
             </div>
 
             <!-- Adicionais -->
-            <div class="modal-section">
-                <div class="modal-section-title">
-                    <span class="material-symbols-outlined">add_circle</span>
-                    Adicionais
-                </div>
-                ${ADICIONAIS.map((a, i) => `
-                    <div class="extra-option ${modalAdicionais.includes(i) ? "selected" : ""}" onclick="toggleAdicional(${i})">
-                        <span class="extra-name">${a.name}</span>
-                        <div class="extra-right">
-                            <span class="extra-price">+ ${formatPrice(a.price)}</span>
-                            <div class="checkbox-custom">
-                                <span class="material-symbols-outlined">check</span>
+            <div id="adicionais-section" style="display:${modalShowAdicionais ? "block" : "none"}">
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        Adicionais
+                    </div>
+                    ${ADICIONAIS.map((a, i) => `
+                        <div class="extra-option ${modalAdicionais.includes(i) ? "selected" : ""}" onclick="toggleAdicional(${i})">
+                            <span class="extra-name">${a.name}</span>
+                            <div class="extra-right">
+                                <span class="extra-price">+ ${formatPrice(a.price)}</span>
+                                <div class="checkbox-custom">
+                                    <span class="material-symbols-outlined">check</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `).join("")}
+                    `).join("")}
+                </div>
             </div>
         </div>
     `;
@@ -510,13 +523,8 @@ function selectFlavor2(flavorId) {
     updateModalFooter();
 }
 
-function toggleBorda(idx) {
-    const pos = modalBordas.indexOf(idx);
-    if (pos >= 0) modalBordas.splice(pos, 1);
-    else modalBordas.push(idx);
-    // Update visual
-    const bordaEls = document.querySelectorAll(".modal-section:nth-child(5) .extra-option, .modal-section:nth-child(4) .extra-option");
-    // Simpler: re-render pizza modal
+function selectBorda(idx) {
+    modalBorda = modalBorda === idx ? null : idx;
     renderPizzaModal();
 }
 
@@ -525,6 +533,22 @@ function toggleAdicional(idx) {
     if (pos >= 0) modalAdicionais.splice(pos, 1);
     else modalAdicionais.push(idx);
     renderPizzaModal();
+}
+
+function toggleShowBordas(checked) {
+    modalShowBordas = checked;
+    const section = document.getElementById("bordas-section");
+    if (section) section.style.display = checked ? "block" : "none";
+    if (!checked) { modalBorda = null; }
+    updateModalFooter();
+}
+
+function toggleShowAdicionais(checked) {
+    modalShowAdicionais = checked;
+    const section = document.getElementById("adicionais-section");
+    if (section) section.style.display = checked ? "block" : "none";
+    if (!checked) { modalAdicionais = []; }
+    updateModalFooter();
 }
 
 function getModalTotal() {
@@ -536,7 +560,7 @@ function getModalTotal() {
         base = modalProduct.price;
     }
     let extras = 0;
-    modalBordas.forEach(i => extras += BORDAS[i].price);
+    if (modalBorda !== null) extras += BORDAS[modalBorda].price;
     modalAdicionais.forEach(i => extras += ADICIONAIS[i].price);
     return (base + extras) * modalQty;
 }
@@ -569,11 +593,11 @@ function addToCart() {
     const p = modalProduct;
     let desc = p.desc;
     let price = p.price;
+    let customization = null;
 
     if (p.isPizza && p.sizes) {
         const size = p.sizes[modalSizeIdx];
         price = size.price;
-        desc = size.name;
 
         if (modalSecondFlavor && modalFlavor2) {
             const flavor = PIZZA_FLAVORS.find(f => f.id === modalFlavor2);
@@ -583,19 +607,39 @@ function addToCart() {
         }
 
         const extras = [];
-        modalBordas.forEach(i => { extras.push(BORDAS[i].name); price += BORDAS[i].price; });
+        if (modalBorda !== null) { extras.push(BORDAS[modalBorda].name); price += BORDAS[modalBorda].price; }
         modalAdicionais.forEach(i => { extras.push(ADICIONAIS[i].name); price += ADICIONAIS[i].price; });
         if (extras.length) desc += ` + ${extras.join(", ")}`;
+
+        customization = {
+            sizeIdx: modalSizeIdx,
+            secondFlavor: modalFlavor2,
+            borda: modalBorda,
+            adicionais: [...modalAdicionais]
+        };
     }
 
-    cart.push({
-        productId: p.id,
-        name: p.isPizza && modalSecondFlavor && modalFlavor2 ? "Pizza Meia a Meia" : p.name,
-        desc: desc,
-        price: price,
-        qty: modalQty,
-        customization: p.isPizza ? { sizeIdx: modalSizeIdx, secondFlavor: modalFlavor2, bordas: [...modalBordas], adicionais: [...modalAdicionais] } : null
-    });
+    const itemName = p.isPizza && modalSecondFlavor && modalFlavor2 ? "Pizza Meia a Meia" : p.name;
+
+    // Group identical products
+    const existing = cart.find(item =>
+        item.productId === p.id &&
+        item.price === price &&
+        JSON.stringify(item.customization) === JSON.stringify(customization)
+    );
+
+    if (existing) {
+        existing.qty += modalQty;
+    } else {
+        cart.push({
+            productId: p.id,
+            name: itemName,
+            desc: desc,
+            price: price,
+            qty: modalQty,
+            customization: customization
+        });
+    }
 
     closeModal();
     updateCartBar();
@@ -720,14 +764,14 @@ function sendWhatsApp() {
         return;
     }
 
+    const nome = document.getElementById("input-nome").value;
     const rua = document.getElementById("input-rua").value;
     const numero = document.getElementById("input-numero").value;
     const bairro = document.getElementById("input-bairro").value;
-    const obs = document.getElementById("input-obs").value;
     const changeInput = document.getElementById("input-change");
 
-    if (!rua || !numero || !bairro) {
-        showToast("Preencha o endereço de entrega!");
+    if (!nome || !rua || !numero || !bairro) {
+        showToast("Preencha o nome e endereço de entrega!");
         return;
     }
 
@@ -739,6 +783,7 @@ function sendWhatsApp() {
     const total = subtotal + DELIVERY_FEE;
 
     let msg = `🛒 *NOVO PEDIDO*\n\n`;
+    msg += `👤 *Cliente:* ${nome}\n\n`;
     cart.forEach(item => {
         msg += `➤ *${item.name}* x${item.qty}\n`;
         msg += `  ${item.desc}\n`;
@@ -749,7 +794,6 @@ function sendWhatsApp() {
     msg += `🚚 Taxa de Entrega: ${formatPrice(DELIVERY_FEE)}\n`;
     msg += `💰 *Total: ${formatPrice(total)}*\n\n`;
     msg += `📍 *Endereço:* ${rua}, ${numero} - ${bairro}\n`;
-    if (obs) msg += `📝 *Observações:* ${obs}\n`;
     msg += `💳 *Pagamento:* ${selectedPayment}\n`;
     if (selectedPayment === "Dinheiro" && changeInput && changeInput.value) {
         msg += `💵 *Troco para:* R$ ${changeInput.value}\n`;

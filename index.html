@@ -75,16 +75,6 @@
                 <!-- Cart Items -->
                 <section id="cart-items"></section>
 
-                <!-- Observations -->
-                <section class="checkout-section">
-                    <div class="checkout-section-title">
-                        <span class="material-symbols-outlined">edit_note</span>
-                        Observações
-                    </div>
-                    <textarea id="input-obs" class="observations-textarea"
-                        placeholder="Alguma observação? Ex: sem cebola, ponto da carne..."></textarea>
-                </section>
-
                 <!-- Delivery Address -->
                 <section class="checkout-section">
                     <div class="checkout-section-title">
@@ -92,7 +82,11 @@
                         Endereço de Entrega
                     </div>
                     <div class="form-grid">
-                        <div class="form-group">
+                        <div class="form-group full">
+                            <label class="form-label" for="input-nome">Nome</label>
+                            <input id="input-nome" class="form-input" type="text" placeholder="Seu nome completo" />
+                        </div>
+                        <div class="form-group full">
                             <label class="form-label" for="input-rua">Rua</label>
                             <input id="input-rua" class="form-input" type="text" placeholder="Nome da rua" />
                         </div>
@@ -100,7 +94,7 @@
                             <label class="form-label" for="input-numero">Número</label>
                             <input id="input-numero" class="form-input" type="text" placeholder="123" />
                         </div>
-                        <div class="form-group full">
+                        <div class="form-group">
                             <label class="form-label" for="input-bairro">Bairro</label>
                             <input id="input-bairro" class="form-input" type="text" placeholder="Seu bairro" />
                         </div>
@@ -123,9 +117,9 @@
                             <span class="payment-label">Dinheiro</span>
                             <span class="material-symbols-outlined payment-icon">payments</span>
                         </div>
-                        <div id="change-field" style="margin-top:-0.5rem;margin-left:2.75rem;">
-                            <input id="input-change" class="change-input" type="text"
-                                placeholder="Troco para quanto?" />
+                        <div id="change-field" style="padding-left:2.75rem; margin-top:0.25rem;">
+                            <input id="input-change" class="form-input" type="text"
+                                placeholder="Troco para quanto? Ex: R$ 50,00" />
                         </div>
                         <!-- Cartão -->
                         <div class="payment-option" data-payment="cartao" data-label="Cartão na Entrega"

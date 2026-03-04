@@ -749,11 +749,22 @@ function changeCartQty(idx, delta) {
 function selectPayment(el) {
     document.querySelectorAll(".payment-option").forEach(o => o.classList.remove("selected"));
     el.classList.add("selected");
-    const changeField = document.getElementById("change-field");
+    const changeContainer = document.getElementById("change-toggle-container");
     if (el.dataset.payment === "dinheiro") {
-        changeField.style.display = "block";
+        changeContainer.style.display = "block";
     } else {
-        changeField.style.display = "none";
+        changeContainer.style.display = "none";
+        document.getElementById("toggle-change").checked = false;
+        document.getElementById("change-field").style.display = "none";
+        document.getElementById("input-change").value = "";
+    }
+}
+
+function toggleChangeInput(checked) {
+    const changeField = document.getElementById("change-field");
+    changeField.style.display = checked ? "block" : "none";
+    if (!checked) {
+        document.getElementById("input-change").value = "";
     }
 }
 
@@ -768,6 +779,12 @@ function sendWhatsApp() {
     const rua = document.getElementById("input-rua").value;
     const numero = document.getElementById("input-numero").value;
     const bairro = document.getElementById("input-bairro").value;
+    const obs = document.getElementById("input-obs") ? document.getElementById("input-obs").value : "";
+
+    // Check if toggle for change is checked
+    const toggleChange = document.getElementById("toggle-change");
+    const needsChange = toggleChange && toggleChange.checked;
+
     const changeInput = document.getElementById("input-change");
 
     if (!nome || !rua || !numero || !bairro) {
@@ -794,8 +811,9 @@ function sendWhatsApp() {
     msg += `🚚 Taxa de Entrega: ${formatPrice(DELIVERY_FEE)}\n`;
     msg += `💰 *Total: ${formatPrice(total)}*\n\n`;
     msg += `📍 *Endereço:* ${rua}, ${numero} - ${bairro}\n`;
+    if (obs) msg += `📝 *Observações:* ${obs}\n`;
     msg += `💳 *Pagamento:* ${selectedPayment}\n`;
-    if (selectedPayment === "Dinheiro" && changeInput && changeInput.value) {
+    if (selectedPayment === "Dinheiro" && needsChange && changeInput && changeInput.value) {
         msg += `💵 *Troco para:* R$ ${changeInput.value}\n`;
     }
 
